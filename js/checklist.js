@@ -285,3 +285,18 @@ document.addEventListener('DOMContentLoaded', () =>{
         }
     document.getElementById('saved_checklists').innerHTML = html
 });
+
+const create_checklist_printable = (()=>{
+    let rep = `\n# checklist ${lstore.storage.title}\n\n---\n`;
+    for( let key in lstore.storage.checklist_items ){
+        rep += `\n\n## ${lstore.storage.checklist_items[key].title}\n`
+        for( let item in lstore.storage.checklist_items[key].items )
+            rep += `\n - ${lstore.storage.checklist_items[key].items[item].title}`
+    }
+
+    let win = window.open()
+    win.document.body.style.lineBreak = 'pre-line';
+    let pre = document.createElement('pre');
+    pre.textContent = rep;
+    win.document.body.appendChild(pre);
+});

@@ -23,6 +23,7 @@
 		<div class="btn-toolbar p-2 bg-secondary mr-2">
 			<select id="saved_checklists" class="custom-select custom-select-sm mr-4 m-2"></select>
 			<button id="edit_title" class="btn btn-warning btn-sm m-2 mb-0 mt-0" onclick="checklist_title_edit();">rename</button>
+
 			<button  class="btn btn-success btn-sm m-2 mb-0 mt-0" onclick="checklist_add_complete()">duplicate</button>
 			<button  class="btn btn-danger btn-sm m-2 mb-0 mt-0" onclick="checklist_del_complete()">delete</button>
 			
@@ -34,6 +35,7 @@
 			<div class="btn-toolbar" role="toolbar" aria-label="">
 				<div class="btn-group" role="group" aria-label="">
 					<button id="vis_toggle" class="btn btn-info btn-sm m-4">Toggle visited</button>
+					<button id="create_printable" class="btn btn-info btn-sm m-4" onclick="create_checklist_printable();">create printable output</button>
 				</div>
 			</div>
 		  <div id="checklist"></div>
