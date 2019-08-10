@@ -53,7 +53,7 @@ class lStore {
         return newKey;
     }
     renameCategory(kat, title){
-        this.storage.checklist_items[key].title = title;
+        this.storage.checklist_items[kat].title = title;
         this.storage.id_showRegister = `collapse${kat}`
         this.save();
         return true;
