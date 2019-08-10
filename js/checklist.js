@@ -12,10 +12,9 @@ let default_initial_storage = {
     toggle_state:false, 
     APP_KEY: 'checklist_app_DEFAULT',
     title: "DEFAULT",
-    checked:[], 
     checklist_items: {
-        Kat_0: { title: "Mainstuff", items: [ { id:0,title:"yep" }, { id:1,title:"this stuff" }, { id:2,title:"is important" } ] },
-        Kat_1: { title: "secondary Stuff", items: [ { id:3,title:"Little" }, { id:4,title:"side" }, { id:5,title:"Stories" } ] }
+        Kat_0: { title: "Mainstuff", items: [ { id:"0",title:"yep", /*opt*/ checked: false }, { id:"1",title:"this stuff" }, { id:"2",title:"is important" } ] },
+        Kat_1: { title: "secondary Stuff", items: [ { id:"3",title:"Little" }, { id:"4",title:"side" }, { id:"5",title:"Stories" } ] }
     } 
 };
 
@@ -28,14 +27,18 @@ class lStore {
         return default_initial_storage;
     }
     constructor(){ this.load(); }
-    reset() { localStorage[APP_KEY] = JSON.stringify(this.initial_storage()); this.load();  }
+    reset() { let title_tmp = this.storage.title; localStorage[APP_KEY] = JSON.stringify(this.initial_storage()); this.load(); this.storage.title = title_tmp;  }
     load(){ 
         this.storage = localStorage[APP_KEY] ? JSON.parse(localStorage[APP_KEY]) : this.initial_storage() 
     }
     save(){ localStorage[APP_KEY] = JSON.stringify(this.storage); }
     
-    add(ID){ if( this.storage.checked.indexOf(ID) < 0 ) this.storage.checked.push(ID); this.save(); }
-    del(ID){ this.storage.checked = this.storage.checked.filter(x=>x!=ID); this.save(); }
+    getItem(kat,id){
+    		let item = this.storage.checklist_items[kat].items.find(x => x.id==id );
+    		return item;
+    }
+    
+    toggleCheck(kat,id){ let item = this.getItem(kat,id); item.checked = item.checked == true ? false : true; this.save(); }
 }
 const lstore = new lStore();
 
@@ -80,8 +83,9 @@ const checklist_add_complete = () => {
 // adding a new checklist item
 const checklist_item_add = (key) => {
     lstore.storage.checklist_items[key].items.push({ 
-        title: `new item created @${cKey()}`,
-        id: cKey()
+        title: `new item created @${(new Date()).getTime()}`,
+        id: cKey(),
+        checked: false
     }); 
     lstore.save(); 
     create_checklist();
@@ -171,7 +175,7 @@ let create_checklist = () => {
                     <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse${key}" aria-expanded="true" aria-controls="collapse${key}">${html_enc(category_title)}</button>
                     <button class="btn btn-success btn-sm float-right m-2" onclick="checklist_category_add('${key}')">++</button>
                     <button class="btn btn-danger btn-sm float-right m-2" onclick="checklist_category_del('${key}')">--</button>
-                    <button class="btn btn-danger btn-sm float-right m-2" onclick="checklist_category_rename('${key}')">rename</button>
+                    <button class="btn btn-warning btn-sm float-right m-2" onclick="checklist_category_rename('${key}')">rename</button>
                     <div class="collapse border p-2 pr-4 m-2" id="${key}_ed">
                         <input class="form-control m-2" type="text" value="${key}" />
                         <div class="d-block pl-2">
@@ -185,7 +189,7 @@ let create_checklist = () => {
                 <div class="card-body">` + lstore.storage.checklist_items[key].items.map( (x,i) => { 
                     let id = x.id;
                     return `
-                    <div class="ch_item" id="${id}">
+                    <div class="ch_item" key="${key}" id="${id}">
                         <input id="${id}_in" type="checkbox" />
                         <span class="btn btn-sm btn-danger" onclick="checklist_item_del('${key}','${id}')">--</span>
                         <span class="btn btn-sm btn-warning" onclick="checklist_item_edit('${key}','${id}')">rename</span>
@@ -224,41 +228,43 @@ let create_checklist = () => {
         lstore.save()
     }
 
-    const bm_check = (ID) => {
-        let el = document.querySelector(`[id="${ID}"]`);
+    const bm_check = (key,id,db_update=true) => {
+        let el = document.querySelector(`[key="${key}"][id="${id}"]`);
         el ? (()=>{
-            el.querySelector('input').checked='checked'; 
-            el.querySelector('label').classList.add('vis'); 
-            lstore.add(ID)
+        
+        		if( !lstore.getItem(key,id).checked || lstore.getItem(key,id).checked == false ){
+				        el.querySelector('input').checked='checked'; 
+				        el.querySelector('label').classList.add('vis'); 
+		        }
+		        
+		        else {
+				        el.querySelector('input').checked = null; 
+				        el.querySelector('label').classList.remove('vis');
+		        }
+		        
+            if(db_update==true) lstore.toggleCheck(key,id);
+            
         })() : (()=>{
-            console.warn(`Element ${ID} does not exist !`);
-            lstore.del(ID);
+            console.warn(`Element ${id} does not exist !`);
+            lstore.del(id);
         })
-    }
-    const bm_uncheck = (ID) => {
-        let el = document.querySelector(`[id="${ID}"]`);
-        el ? (()=>{
-            el.querySelector('input').checked = null; 
-            el.querySelector('label').classList.remove('vis');
-            lstore.del(ID)
-        })() : console.warn(`Element ${ID} does not exist !`)
     }
             
     checklist.querySelectorAll('.ch_item > input').forEach( x =>
         x.oninput = () => {
-            if( event.target.checked ) bm_check( event.target.parentNode.id );
-            else bm_uncheck( event.target.parentNode.id );
+        		let el = event.target.parentNode;
+            bm_check( el.getAttribute('key'), el.id );
             toggle_vis(true)
         }
     );
     
-    // assign css vis class toggle function to all items in checklist
-    document.querySelector('#vis_toggle').onclick = () => toggle_vis();
-    
-    
     // set initial checked state for all items in checklist
-    lstore.storage.checked.map( x => bm_check(x) );
-
+    for( let kat in lstore.storage.checklist_items ) {
+    	lstore.storage.checklist_items[kat].items.filter( item => item.checked ).forEach( x => {
+    			lstore.getItem(kat,x.id).checked = false; // must be initially set to false ( for the UI )
+    			bm_check(kat, x.id);
+  		});
+		}
     // set css vis class for all checked items in checklist
     toggle_vis(true);
     
