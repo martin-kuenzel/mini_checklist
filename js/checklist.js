@@ -15,7 +15,7 @@ let default_initial_storage = {
     checked:[], 
     checklist_items: {
         Kat_0: { title: "Mainstuff", items: [ { id:0,title:"yep" }, { id:1,title:"this stuff" }, { id:2,title:"is important" } ] },
-        Kat_1: { title: "secondary Stuff", items: [ { id:0,title:"Little" }, { id:1,title:"side" }, { id:2,title:"Stories" } ] }
+        Kat_1: { title: "secondary Stuff", items: [ { id:3,title:"Little" }, { id:4,title:"side" }, { id:5,title:"Stories" } ] }
     } 
 };
 
