@@ -196,11 +196,14 @@ let create_checklist = () => {
         html += `
         <div class="card">
             <div class="card-header" id="${key}" onclick="lstore.storage.id_showRegister = 'collapse${key}';lstore.save();">
-                <h2>
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse${key}" aria-expanded="true" aria-controls="collapse${key}">${html_enc(category_title)}</button>
-                    <button class="btn btn-success btn-sm float-right m-2" onclick="checklist_category_add('${key}')">++</button>
-                    <button class="btn btn-danger btn-sm float-right m-2" onclick="checklist_category_del('${key}')">--</button>
-                    <button class="btn btn-warning btn-sm float-right m-2" onclick="checklist_category_rename('${key}')">rename</button>
+                <h2 class="d-flex">
+                    <button class="flex-grow-1 text-left btn btn-link" type="button" data-toggle="collapse" data-target="#collapse${key}" aria-expanded="true" aria-controls="collapse${key}">
+                    	${html_enc(category_title)}
+                  	</button>
+                    <button class="btn btn-success btn-sm m-1" onclick="checklist_category_add('${key}')">++</button>
+                    <button class="btn btn-danger  btn-sm m-1" onclick="checklist_category_del('${key}')">--</button>
+                    <button class="btn btn-warning btn-sm m-1" onclick="checklist_category_rename('${key}')">rename</button>
+                </h2>
                     <div class="collapse border p-2 pr-4 m-2" id="${key}_ed">
                         <input class="form-control m-2" type="text" value="${key}" />
                         <div class="d-block pl-2">
@@ -208,17 +211,18 @@ let create_checklist = () => {
                             <div class="btn btn-sm btn-danger" onclick="checklist_category_rename_save('${key}'); ">save</div>
                         </div>
                     </div>
-                </h2>
             </div>
             <div id="collapse${key}" class="collapse ${'collapse'+key==show?'show':''}" aria-labelledby="${key}" data-parent="#accordionChecklist">
-                <div class="card-body">` + lstore.storage.checklist_items[key].items.map( (x,i) => { 
+                <div class="card-body p-2">` + lstore.storage.checklist_items[key].items.map( (x,i) => { 
                     let id = x.id;
                     return `
                     <div class="ch_item" key="${key}" id="${id}">
-                        <input id="${id}_in" type="checkbox" />
-                        <span class="btn btn-sm btn-danger" onclick="checklist_item_del('${key}','${id}')">--</span>
-                        <span class="btn btn-sm btn-warning" onclick="checklist_item_edit('${key}','${id}')">rename</span>
-                        <label for="${id}_in">${html_enc(x.title)}</label>
+                    		<div class="d-flex pl-1 mb-1">
+				                    <input class="align-self-center" root="${id}" id="${id}_in" type="checkbox" />
+				                    <label class="flex-grow-1 align-self-center ml-1 mb-1" for="${id}_in">${html_enc(x.title)}</label>
+				                    <span  class="ml-1 btn btn-sm btn-danger" onclick="checklist_item_del('${key}','${id}')">--</span>
+				                    <span  class="ml-1 btn btn-sm btn-warning" onclick="checklist_item_edit('${key}','${id}')">rename</span>
+				                </div>
                         <!-- ITEM TITLE EDITOR -->
                         <div class="collapse border p-2 pr-4 m-2" id="${id}_ed">
                             <input class="form-control m-2" type="text" value="${html_enc(x.title)}" />
@@ -259,12 +263,12 @@ let create_checklist = () => {
         
         		if( !lstore.getItem(key,id).checked || lstore.getItem(key,id).checked == false ){
 				        el.querySelector('input').checked='checked'; 
-				        el.querySelector('label').classList.add('vis'); 
+				        el.classList.add('vis'); 
 		        }
 		        
 		        else {
 				        el.querySelector('input').checked = null; 
-				        el.querySelector('label').classList.remove('vis');
+				        el.classList.remove('vis');
 		        }
 		        
             if(db_update==true) lstore.toggleCheck(key,id);
@@ -275,9 +279,9 @@ let create_checklist = () => {
         })
     }
             
-    checklist.querySelectorAll('.ch_item > input').forEach( x =>
+    checklist.querySelectorAll('.ch_item input[type="checkbox"]').forEach( x =>
         x.oninput = () => {
-        		let el = event.target.parentNode;
+        		let el = document.getElementById( event.target.getAttribute('root') );
             bm_check( el.getAttribute('key'), el.id );
             toggle_vis(true)
         }
