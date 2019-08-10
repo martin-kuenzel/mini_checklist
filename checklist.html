@@ -28,26 +28,34 @@
 		<div class="bg-secondary mt-1 p-2 mr-2">
 			<select id="saved_checklists" class="custom-select custom-select-sm mb-2"></select>
 			<div class="btn-toolbar">
-					<button id="edit_title" class="no_default btn btn-warning btn-sm" onclick="checklist_title_edit();">rename</button>
-					<button  class="btn btn-success btn-sm" onclick="checklist_add_complete()">duplicate</button>
-					<button  class="no_default btn btn-danger btn-sm " onclick="checklist_del_complete()">delete</button>
-					
-					<!--// resets current checklist to DEFAULT (initial) state -->
-					<button id="reset_checklist" class="btn btn-danger btn-sm " onclick="checklist_reset();">Reset to DEFAULT</button>
 
-					<button id="create_printable" class="btn btn-info btn-sm" onclick="create_checklist_printable();">create printable output</button>
+				<button class="btn btn-sm btn-info ml-0" onclick="file_upload.click()">Upload
+					<input class="collapse" type="file" id="file_upload" name="file" onchange="uploadChecklist(event)" />
+				</button>
+				
+
+				<button id="edit_title" class="no_default btn btn-warning btn-sm" onclick="checklist_title_edit();">rename</button>
+				<button  class="btn btn-success btn-sm" onclick="checklist_add_complete()">duplicate</button>
+				<button  class="no_default btn btn-danger btn-sm " onclick="checklist_del_complete()">delete</button>
+				
+				<!--// resets current checklist to DEFAULT (initial) state -->
+				<button id="reset_checklist" class="btn btn-danger btn-sm " onclick="checklist_reset();">Reset to DEFAULT</button>
+				
+				<button id="create_printable" class="btn btn-info btn-sm" onclick="create_checklist_printable();">create printable output</button>
+
+				<button class="btn btn-sm btn-success" onclick="downloadChecklist(`checklist_${APP_KEY}_${(new Date()).getTime()}.json`, 'data:attachment/text', JSON.stringify(lstore.storage));">Download</button>
+
 			</div>
 		</div>
 	</h2>
 	<div class="pl-1 pr-1 ml-1 mr-1">
-			<div class="btn-toolbar" role="toolbar" aria-label="">
-				<label class="noselect p-2"><input type="checkbox" id="vis_toggle" oninput="set_visibility_of_checked()">&emsp;Blend out checked</label> 
-				<div class="btn-group" role="group" aria-label="">
-				</div>
-			</div>
-		  <div id="checklist"></div>
+		<div class="input-group-sm" role="group" aria-label="">
+				<label class="noselect p-2"><input type="checkbox" id="vis_toggle" oninput="set_visibility_of_checked()"> Blend out checked items</label> 
+		</div>
+		<div id="checklist"></div>
   </div>
-    
+  <script>
+	</script>
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

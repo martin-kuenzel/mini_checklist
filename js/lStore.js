@@ -35,6 +35,29 @@ class lStore {
     save(){ 
         localStorage[APP_KEY] = JSON.stringify(this.storage); 
     }
+
+    import(data){
+        console.log(data)
+        if(
+               typeof data.APP_KEY != 'undefined'
+            && typeof data.toggle_state != 'undefined'
+            && typeof data.title != 'undefined'
+            && typeof data.checklist_items != 'undefined'
+        ){
+                
+            APP_KEY = data.APP_KEY;
+            localStorage.checklist_app_current = APP_KEY
+            
+            this.storage.toggle_state = data.toggle_state;
+            this.storage.APP_KEY = data.APP_KEY;
+            this.storage.title = data.title;
+            this.storage.checklist_items = data.checklist_items;
+
+            this.save();
+            
+            return true;
+        }
+    }
     
     getItem(kat,id){
         let item = this.storage.checklist_items[kat].items.find(x => x.id==id );
