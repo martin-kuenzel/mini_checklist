@@ -1,11 +1,9 @@
-html_enc = (str) => {
+const html_enc = (str) => {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // create a rather unique key id value
 const cKey = ()=>{let ret=(new Date()).getTime();for(let i=0;i<5;i++) ret=ret+''+parseInt(Math.random()*9); return ret;}
-// create a bootstrap compatible keysignature (eg. accordion)
-const bootstrap_compat = (key) => key.replace( /(:|\.|\[|\]|,|=|@|\s)/g, "" );
 
 // the default data (which is set when reset is done, or no checklists are existant)
 let default_initial_storage = { 
@@ -43,7 +41,7 @@ class lStore {
 const lstore = new lStore();
 
 
-// editing the title of the current checklist
+// editing the title of the current checklist start
 const checklist_title_edit = () => {
     if( APP_KEY == lstore.initial_storage().APP_KEY ) 
         return alert('Title of default can not be changed');
@@ -51,13 +49,17 @@ const checklist_title_edit = () => {
     document.querySelectorAll(`[id*="_ed"]:not([id="title_ed"])`).forEach(x=>x.classList.add('collapse'));
 
     document.getElementById('title_ed').classList.toggle('collapse');
-    document.getElementById('title_input').value = lstore.storage.title; // unescape(APP_KEY).replace(/^checklist_app_/,'')
+    document.getElementById('title_input').value = lstore.storage.title;
 }
+
+// editing the title of the current checklist save
 const checklist_title_edit_save = () => {
     lstore.storage.title = document.getElementById('title_input').value;
     lstore.save();
     document.location.reload()
 };
+
+// editing the title of the current checklist cancel
 const checklist_title_edit_cancel = checklist_title_edit;
 
 // deleting complete current checklist
@@ -98,18 +100,22 @@ const checklist_item_del = (key,id) => {
     create_checklist();
 }
 
-// editing a checklist item
+// editing a checklist item start
 const checklist_item_edit = (key,id) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${id}_ed"])`).forEach(x=>x.classList.add('collapse'));
     
     document.querySelector(`#collapse${key} [id="${id}_ed"]`).querySelector('input').value = lstore.storage.checklist_items[key].items.filter(x=>x.id==id)[0].title
     document.querySelector(`#collapse${key} [id="${id}_ed"]`).classList.toggle('collapse');
 }
+
+// editing a checklist item save
 const checklist_item_edit_save = (key,id) => {
     lstore.storage.checklist_items[key].items.filter(x=>x.id==id)[0].title = document.querySelector(`#collapse${key} [id="${id}_ed"]`).querySelector('input').value
     lstore.save(); 
     create_checklist();
 }
+
+// editing a checklist item cancel
 const checklist_item_cancel = (key,id) => {
     checklist_item_edit(key,id)
 }
@@ -141,13 +147,15 @@ const checklist_category_del = (key) => {
     create_checklist();
 }
 
-// renaming of a category
+// renaming of a category start
 const checklist_category_rename = (key) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${key}_ed"])`).forEach(x=>x.classList.add('collapse'));
 
     document.querySelector(`[id="${key}_ed"] input`).value = lstore.storage.checklist_items[key].title;
     document.getElementById(`${key}_ed`).classList.toggle('collapse')			
 }
+
+// renaming of a category save
 const checklist_category_rename_save = (key) => {
     let newKey = document.querySelector(`[id="${key}_ed"] input`).value
     lstore.storage.checklist_items[key].title = newKey;
@@ -155,14 +163,31 @@ const checklist_category_rename_save = (key) => {
     lstore.save();
     create_checklist();
 }
+
+// renaming of a category cancel
 const checklist_category_rename_cancel = (key) => {
     checklist_category_rename(key);
 }
-
+    
+// indicator to indicate whether currently opened list is the default list
+let isDefaultList = APP_KEY == default_initial_storage.APP_KEY;
+    
+// draw the checklist components
 let create_checklist = () => {
     
+    // set the title
     document.getElementsByTagName('title')[0].textContent =  lstore.storage.title
     document.getElementById('checklist_title').textContent = lstore.storage.title
+    
+    isDefaultList = APP_KEY == default_initial_storage.APP_KEY;
+    
+    // if the current list is the DEFAULT checklist, set a mark to visualize that it is and hide .no_default elements
+   	document.querySelectorAll('.no_default').forEach( x => x.style.display = null ); // initially show .no_default elements
+		document.getElementById('no_default_hint').style.display = "none";
+    if( isDefaultList == true ){
+	    	document.getElementById('no_default_hint').style.display = null;
+	    	document.querySelectorAll('.no_default').forEach( x => x.style.display = 'none' );
+    }
 
     let html = ""; 
     let show = document.querySelector('.show') ? document.querySelector('.show').id : lstore.storage.id_showRegister
@@ -281,13 +306,13 @@ let create_checklist = () => {
         
 document.addEventListener('DOMContentLoaded', () =>{
     create_checklist();
-    let html = '<option key="checklist_app_DEFAULT">DEFAULT</option>';
+    let html = '<option style="font-weight:bold;" key="checklist_app_DEFAULT" class="bg-warning">DEFAULT</option>';
     for( let ch in localStorage )
         if( ch.match(/^checklist_app_/) && !ch.match(/^checklist_app_(current|DEFAULT)$/) ){
-                _lstore = JSON.parse(localStorage[ch]);
-                html += `
-                <option ${ ch == APP_KEY ? 'selected' : '' } key="${ch}">${html_enc(_lstore.title)}</option>
-                `;
+				    _lstore = JSON.parse(localStorage[ch]);
+				    html += `
+				    <option ${ ch == APP_KEY ? 'selected' : '' } key="${ch}">${html_enc(_lstore.title)}</option>
+				    `;
         }
     document.getElementById('saved_checklists').innerHTML = html
 });

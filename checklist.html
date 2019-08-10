@@ -14,18 +14,19 @@
 
 	<h2 class="header pl-2 pt-2 pb-2 m-0 mb-4">Checklist&nbsp;<span id="checklist_title"></span>
 		<div class="collapse bg-white border p-2 pr-4 mr-4 m-2" id="title_ed">
-			<input id="title_input" class="form-control m-2" type="text" value="" />
+			<input id="title_input" class="no_default form-control m-2" type="text" value="" />
 			<div class="d-block pl-2">
 				<div class="btn btn-sm btn-info" onclick="checklist_title_edit_cancel();">cancel</div>
 				<div class="btn btn-sm btn-success" onclick="checklist_title_edit_save();">save</div>
 			</div>
 		</div>
+		<div><h6 id="no_default_hint" class="bg-dark text-danger p-1 mr-2 text-center">the DEFAULT list, can't be renamed or deleted</h6></div>
 		<div class="btn-toolbar p-2 bg-secondary mr-2">
 			<select id="saved_checklists" class="custom-select custom-select-sm mr-4 m-2"></select>
-			<button id="edit_title" class="btn btn-warning btn-sm m-2 mb-0 mt-0" onclick="checklist_title_edit();">rename</button>
+			<button id="edit_title" class="no_default btn btn-warning btn-sm m-2 mb-0 mt-0" onclick="checklist_title_edit();">rename</button>
 
 			<button  class="btn btn-success btn-sm m-2 mb-0 mt-0" onclick="checklist_add_complete()">duplicate</button>
-			<button  class="btn btn-danger btn-sm m-2 mb-0 mt-0" onclick="checklist_del_complete()">delete</button>
+			<button  class="no_default btn btn-danger btn-sm m-2 mb-0 mt-0" onclick="checklist_del_complete()">delete</button>
 			
 			<!--// resets current checklist to DEFAULT (initial) state -->
 			<button id="reset_checklist" class="btn btn-danger btn-sm m-2 mb-0 mt-0" onclick="lstore.reset(); create_checklist();">Reset to DEFAULT</button>
