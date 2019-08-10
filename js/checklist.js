@@ -223,6 +223,7 @@ let create_checklist = () => {
 				                    <span  class="ml-1 btn btn-sm btn-danger" onclick="checklist_item_del('${key}','${id}')">--</span>
 				                    <span  class="ml-1 btn btn-sm btn-warning" onclick="checklist_item_edit('${key}','${id}')">rename</span>
 				                </div>
+                    </div>
                         <!-- ITEM TITLE EDITOR -->
                         <div class="collapse border p-2 pr-4 m-2" id="${id}_ed">
                             <input class="form-control m-2" type="text" value="${html_enc(x.title)}" />
@@ -232,7 +233,6 @@ let create_checklist = () => {
                             </div>
                         </div>
                         <!-- //ITEM TITLE EDITOR -->
-                    </div>
                     `
                 }).join('\n') + `
                 </div>
