@@ -37,16 +37,15 @@ class lStore {
     }
 
     import(data){
-        console.log(data)
         if(
-               typeof data.APP_KEY != 'undefined'
-            && typeof data.toggle_state != 'undefined'
-            && typeof data.title != 'undefined'
-            && typeof data.checklist_items != 'undefined'
+            typeof data.APP_KEY != 'undefined' && 
+            typeof data.toggle_state != 'undefined' && 
+            typeof data.title != 'undefined' && 
+            typeof data.checklist_items != 'undefined'
         ){
                 
             APP_KEY = data.APP_KEY;
-            localStorage.checklist_app_current = APP_KEY
+            localStorage.checklist_app_current = APP_KEY;
             
             this.storage.toggle_state = data.toggle_state;
             this.storage.APP_KEY = data.APP_KEY;
@@ -60,12 +59,12 @@ class lStore {
     }
     
     getItem(kat,id){
-        let item = this.storage.checklist_items[kat].items.find(x => x.id==id );
+        let item = this.storage.checklist_items[kat].items.find(x => x.id == id );
         return item;
     }
     
     addCategory(addAfter){
-        let newKey = `${cKey()}`
+        let newKey = `${cKey()}`;
         let new_storage = {};
         for( let kat in this.storage.checklist_items ){
             new_storage[kat] = this.storage.checklist_items[kat]
@@ -92,8 +91,9 @@ class lStore {
         this.save();
         return newKey; 
     }
-    renameItem(kat,id, title){
+    renameItem(kat, id, title, content=""){
         this.getItem(kat,id).title = title;
+        this.getItem(kat,id).content = content;
         this.save();
         return true;
     }

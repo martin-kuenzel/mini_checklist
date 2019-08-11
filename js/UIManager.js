@@ -19,13 +19,13 @@ const checklist_title_edit = () => {
 
     document.getElementById('title_ed').classList.toggle('collapse');
     document.getElementById('title_input').value = lstore.storage.title;
-}
+};
 
 // editing the title of the current checklist save
 const checklist_title_edit_save = () => {
     lstore.storage.title = document.getElementById('title_input').value;
     lstore.save();
-    document.location.reload()
+    document.location.reload();
 };
 
 // editing the title of the current checklist cancel
@@ -34,11 +34,11 @@ const checklist_title_edit_cancel = checklist_title_edit;
 // deleting complete current checklist
 const checklist_del_complete = () => {
     if( APP_KEY == default_initial_storage.APP_KEY ) 
-        return alert('Deletion of the default list is not possible')
+        return alert('Deletion of the default list is not possible');
 
     delete localStorage[APP_KEY];
     localStorage.checklist_app_current = default_initial_storage.APP_KEY;
-    document.location.reload()
+    document.location.reload();
 };
 
 // copying complete recent checklist
@@ -48,77 +48,83 @@ const checklist_add_complete = () => {
     lstore.storage.title = lstore.storage.title + '_copy';
     localStorage.checklist_app_current = APP_KEY;
     lstore.save();
-    document.location.reload()
+    document.location.reload();
 };
 
 // adding a new checklist item
 const checklist_item_add = (kat) => {
     if( !lstore.addItem(kat) ) 
-        return alert('Error creating new item')
+        return alert('Error creating new item');
     create_checklist();
-}
+};
 
 // deleting a checklist item
-const checklist_item_del = (key, id) => {
-    if( !lstore.delItem(key,id) )
+const checklist_item_del = (kat, id) => {
+    if( !lstore.delItem(kat,id) )
         return alert('Error deleting item');
     create_checklist();
-}
+};
 
 // editing a checklist item start
-const checklist_item_edit = (key, id) => {
+const checklist_item_edit = (kat, id) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${id}_ed"])`).forEach(x=>x.classList.add('collapse'));
-    document.querySelector(`#collapse${key} [id="${id}_ed"]`).querySelector('input').value = lstore.storage.checklist_items[key].items.filter(x=>x.id==id)[0].title
-    document.querySelector(`#collapse${key} [id="${id}_ed"]`).classList.toggle('collapse');
-}
+    document.querySelector(`#collapse${kat} [id="${id}_ed"]`).querySelector('input').value = lstore.storage.checklist_items[kat].items.filter(x=>x.id==id)[0].title;
+    document.querySelector(`#collapse${kat} [id="${id}_ed"]`).classList.toggle('collapse');
+};
 
 // editing a checklist item save
 const checklist_item_edit_save = (kat, id) => {
-    let newKey = document.querySelector(`#collapse${kat} [id="${id}_ed"]`).querySelector('input').value;
-    lstore.renameItem(kat,id,newKey);
+    let title = document.querySelector(`#collapse${kat} [id="${id}_ed"] .item_title`).value;
+    if(title.length<1) {
+        document.querySelector(`#collapse${kat} [id="${id}_ed"] .item_title`).focus();
+        return alert('The title cannot be empty !');
+    }
+
+    let content = document.querySelector(`#collapse${kat} [id="editor_${id}"] .ql-editor`).innerHTML;
+    lstore.renameItem(kat,id,title,content);
     create_checklist();
-}
+};
 
 // editing a checklist item cancel
-const checklist_item_cancel = (key, id) => {
-    checklist_item_edit(key, id)
-}
+const checklist_item_cancel = (kat, id) => {
+    checklist_item_edit(kat, id);
+};
 
 // adding a new category
-const checklist_category_add = (add_after) => {
-    let newKey = lstore.addCategory(add_after);
-    lstore.storage.id_showRegister = `collapse${newKey}`
+const checklist_category_add = (add_after_kat) => {
+    let newkat = lstore.addCategory(add_after_kat);
+    lstore.storage.id_showRegister = `collapse${newkat}`;
     create_checklist();
-}
+};
 
 // removing a category
 const checklist_category_del = (key) => {
     if( Object.keys(lstore.storage.checklist_items).length == 1 ) 
-        return alert('Cannot remove all categories!')
+        return alert('Cannot remove all categories!');
     delete lstore.storage.checklist_items[key];
     lstore.save();
     create_checklist();
-}
+};
 
 // renaming of a category start
 const checklist_category_rename = (key) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${key}_ed"])`).forEach(x=>x.classList.add('collapse'));
 
     document.querySelector(`[id="${key}_ed"] input`).value = lstore.storage.checklist_items[key].title;
-    document.getElementById(`${key}_ed`).classList.toggle('collapse')			
-}
+    document.getElementById(`${key}_ed`).classList.toggle('collapse');
+};
 
 // renaming of a category save
 const checklist_category_rename_save = (key) => {
-    let newKey = document.querySelector(`[id="${key}_ed"] input`).value
+    let newKey = document.querySelector(`[id="${key}_ed"] input`).value;
     lstore.renameCategory(key,newKey);
     create_checklist();
-}
+};
 
 // renaming of a category cancel
 const checklist_category_rename_cancel = (key) => {
     checklist_category_rename(key);
-}
+};
 
 // indicator to indicate whether currently opened list is the default list
 let isDefaultList = APP_KEY == default_initial_storage.APP_KEY;
@@ -132,12 +138,38 @@ const toggle_vis = ( keep_state=false ) => {
     lstore.save()
 }*/
 
+
+const bm_check = (key, id,db_update=true) => {
+    let el = document.querySelector(`[key="${key}"][id="${id}"]`);
+    if( el ) {
+    
+        if( !lstore.getItem(key, id).checked || lstore.getItem(key, id).checked == false ){
+            el.querySelector('input').checked='checked'; 
+            el.classList.add('vis');
+        }
+        
+        else {
+            el.querySelector('input').checked = null; 
+            el.classList.remove('vis');
+        }
+            
+        if(db_update==true) lstore.toggleCheck(key, id);
+
+        set_visibility_of_checked(dbupdate=false);
+        
+    }
+    else {
+        console.warn(`Element ${id} does not exist !`);
+        lstore.del(id);
+    }
+};
+
 // draw the checklist components
 let create_checklist = () => {
     
     // set the title
-    document.getElementsByTagName('title')[0].textContent =  lstore.storage.title
-    document.getElementById('checklist_title').textContent = lstore.storage.title
+    document.getElementsByTagName('title')[0].textContent =  lstore.storage.title;
+    document.getElementById('checklist_title').textContent = lstore.storage.title;
     
     isDefaultList = APP_KEY == default_initial_storage.APP_KEY;
     
@@ -150,9 +182,10 @@ let create_checklist = () => {
     }
 
     let html = ""; 
-    let show = document.querySelector('.show') ? document.querySelector('.show').id : lstore.storage.id_showRegister
-    for ( key in lstore.storage.checklist_items ){
-        let category_title = lstore.storage.checklist_items[key].title
+    let show = document.querySelector('.show') ? document.querySelector('.show').id : lstore.storage.id_showRegister;
+    let quill_functions = [];
+    for ( let key in lstore.storage.checklist_items ){
+        let category_title = lstore.storage.checklist_items[key].title;
         html += `
         <div class="card">
             <div class="card-header" id="${key}" onclick="lstore.storage.id_showRegister = 'collapse${key}';lstore.save();">
@@ -173,8 +206,23 @@ let create_checklist = () => {
                     </div>
             </div>
             <div id="collapse${key}" class="collapse ${'collapse'+key==show?'show':''}" aria-labelledby="${key}" data-parent="#accordionChecklist">
-                <div class="card-body p-2">` + lstore.storage.checklist_items[key].items.map( (x,i) => { 
+                <div class="card-body p-2">` + 
+                lstore.storage.checklist_items[key].items.map( (x,i) => { 
                     let id = x.id;
+                    quill_functions.push( () => {
+                        // <!-- Initialize Quill editor -->
+                        let quill = new Quill(`#editor_${id}`, {
+                            modules: {
+                            toolbar: [
+                                [{ header: [1, 2, false] }],
+                                ['bold', 'italic', 'underline'],
+                                ['image', 'code-block']
+                            ]
+                            },
+                            placeholder: 'Add some further description here [optional] ...',
+                            theme: 'snow'  // or 'bubble'
+                        });
+                    });
                     return `
                     <div class="ch_item" key="${key}" id="${id}">
                         <div class="d-flex pl-1 mb-1">
@@ -185,15 +233,23 @@ let create_checklist = () => {
                         </div>
                     </div>
                     <!-- ITEM TITLE EDITOR -->
-                    <div class="collapse border p-2 pr-4 m-2" id="${id}_ed">
-                        <input class="form-control m-2" type="text" value="${html_enc(x.title)}" />
-                        <div class="d-block pl-2">
+                    <div class="collapse border p-2 m-2" id="${id}_ed">
+                        <div class="pl-2 pr-2 mb-2">
+                            <input placeholder="the items title" class="item_title form-control" type="text" value="${html_enc(x.title)}" />
+                        </div>
+                        <!-- QUILL WYSWYG EDITOR CONTAINER -->
+                        <div class="pl-2 pr-2 mb-2">
+                            <div style="height: 225px;" id="editor_${id}">${x.content||''}</div>
+                        </div>
+                        <!-- // END QUILL -->
+                        <div class="d-block p-2">
                             <div class="btn btn-sm btn-info" onclick="create_checklist()">cancel</div>
                             <div class="btn btn-sm btn-danger" onclick="checklist_item_edit_save('${key}','${id}')">save</div>
                         </div>
+                        
                     </div>
                     <!-- //ITEM TITLE EDITOR -->
-                    `
+                    `;
                 }).join('\n') + `
                 </div>
                 <div class="btn-toolbar border-top"  role="toolbar" aria-label="">
@@ -202,35 +258,15 @@ let create_checklist = () => {
                     </div>
                 </div>
             </div>
-        </div>`
+        </div>
+        `;
     }
     
-    document.getElementById('checklist').innerHTML = '<div class="accordion noselect" id="accordionChecklist">' + html + '</div>'
+    document.getElementById('checklist').innerHTML = '<div class="accordion noselect" id="accordionChecklist">' + html + '</div>';
     if( !show ) document.querySelector('#checklist [data-parent="#accordionChecklist"].collapse').classList.toggle('show'); 
 
-    const bm_check = (key, id,db_update=true) => {
-        let el = document.querySelector(`[key="${key}"][id="${id}"]`);
-        el ? (()=>{
-        
-        		if( !lstore.getItem(key, id).checked || lstore.getItem(key, id).checked == false ){
-                    el.querySelector('input').checked='checked'; 
-                    el.classList.add('vis');
-		        }
-		        
-		        else {
-                    el.querySelector('input').checked = null; 
-                    el.classList.remove('vis');
-		        }
-		        
-            if(db_update==true) lstore.toggleCheck(key, id);
-
-            set_visibility_of_checked(dbupdate=false)
-            
-        })() : (()=>{
-            console.warn(`Element ${id} does not exist !`);
-            lstore.del(id);
-        })
-    }
+    for( let f=0; f < quill_functions.length; f++ )
+        quill_functions[f]();
             
     checklist.querySelectorAll('.ch_item input[type="checkbox"]').forEach( x =>
         x.oninput = () => {
@@ -254,7 +290,9 @@ let create_checklist = () => {
         localStorage.checklist_app_current = APP_KEY;
         lstore.load();
         create_checklist(); 
-    }
+    };
     
-    set_visibility_of_checked(dbupdate=false)
-}
+    set_visibility_of_checked(dbupdate=false);
+};
+
+
