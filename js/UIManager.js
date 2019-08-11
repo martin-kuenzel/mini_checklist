@@ -70,6 +70,7 @@ const checklist_item_edit = (kat, id) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${id}_ed"])`).forEach(x=>x.classList.add('collapse'));
     document.querySelector(`#collapse${kat} [id="${id}_ed"]`).querySelector('input').value = lstore.storage.checklist_items[kat].items.filter(x=>x.id==id)[0].title;
     document.querySelector(`#collapse${kat} [id="${id}_ed"]`).classList.toggle('collapse');
+
 };
 
 // editing a checklist item save
@@ -265,8 +266,33 @@ let create_checklist = () => {
     document.getElementById('checklist').innerHTML = '<div class="accordion noselect" id="accordionChecklist">' + html + '</div>';
     if( !show ) document.querySelector('#checklist [data-parent="#accordionChecklist"].collapse').classList.toggle('show'); 
 
+
     for( let f=0; f < quill_functions.length; f++ )
         quill_functions[f]();
+
+    const bm_check = (key, id,db_update=true) => {
+        let el = document.querySelector(`[key="${key}"][id="${id}"]`);
+        el ? (()=>{
+        
+        		if( !lstore.getItem(key, id).checked || lstore.getItem(key, id).checked == false ){
+                    el.querySelector('input').checked='checked'; 
+                    el.classList.add('vis');
+		        }
+		        
+		        else {
+                    el.querySelector('input').checked = null; 
+                    el.classList.remove('vis');
+		        }
+		        
+            if(db_update==true) lstore.toggleCheck(key, id);
+
+            set_visibility_of_checked(dbupdate=false);
+            
+        })() : (()=>{
+            console.warn(`Element ${id} does not exist !`);
+            lstore.del(id);
+        });
+    };
             
     checklist.querySelectorAll('.ch_item input[type="checkbox"]').forEach( x =>
         x.oninput = () => {
@@ -294,5 +320,3 @@ let create_checklist = () => {
     
     set_visibility_of_checked(dbupdate=false);
 };
-
-
