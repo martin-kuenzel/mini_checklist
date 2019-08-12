@@ -86,16 +86,104 @@ const downloadChecklist = (name, type, data) => {
 
 document.addEventListener('DOMContentLoaded', () =>{
     create_checklist();
-    let html = '<option style="font-weight:bold;" key="checklist_app_DEFAULT" class="bg-warning">DEFAULT</option>';
+    let html = '<option style="font-weight:bold;" kat="checklist_app_DEFAULT" class="bg-warning">DEFAULT</option>';
     for( let ch in localStorage )
         if( ch.match(/^checklist_app_/) && !ch.match(/^checklist_app_(current|DEFAULT)$/) ){
             let _lstore = JSON.parse(localStorage[ch]);
             html += `
-            <option ${ ch == APP_KEY ? 'selected' : '' } key="${ch}">${html_enc(_lstore.title)}</option>
+            <option ${ ch == APP_KEY ? 'selected' : '' } kat="${ch}">${html_enc(_lstore.title)}</option>
             `;
         }
     document.getElementById('saved_checklists').innerHTML = html;
 
     document.getElementById('vis_toggle').checked = lstore.storage.toggle_state == true ? 'checked' : null;
     set_visibility_of_checked();
+
+    let dragged;
+
+    /* events fired on the draggable target */
+    document.addEventListener("drag", function( event ) {}, false);
+    document.addEventListener("dragstart", function( event ) {
+        
+        // store a ref. on the dragged elem
+        dragged = event.target;
+        
+        // make it half transparent
+        dragged.classList.add('dragged');
+
+    }, false);
+
+    document.addEventListener("dragend", function( event ) {
+        // remove the dragged class
+        dragged.classList.remove('dragged');
+    }, false);
+
+    /* events fired on the drop targets */
+    document.addEventListener("dragover", function( event ) {
+        // prevent default to allow drop
+        event.preventDefault();
+    }, false);
+
+    document.addEventListener("dragenter", function( event ) {
+
+        // get the category entered by the dragged item
+        let drop_kat = event.target.getAttribute('kat');
+
+        // highlight potential drop target when the draggable element enters it
+        if ( drop_kat ) {
+            document.getElementById(drop_kat).classList.add('dragover');
+        }
+  
+    }, false);
+
+    document.addEventListener("dragleave", function( event ) {
+        let drop_kat = event.target.getAttribute('kat');
+
+        // reset background of potential drop target when the draggable element leaves it
+        if ( drop_kat ) {
+            document.getElementById(drop_kat).classList.remove('dragover');
+        }
+  
+    }, false);
+
+    document.addEventListener("drop", function( event ) {
+
+        // prevent default action (open as link for some elements)
+        event.preventDefault();
+
+        let drop_kat = event.target.getAttribute('kat');
+
+        // move dragged elem to the selected drop target
+        if ( drop_kat ) {
+            
+            document.getElementById(drop_kat).classList.remove('dragover');
+
+            let dropzone = document.getElementById(drop_kat).querySelector('.card-body');
+            let drag_kat = dragged.getAttribute('kat');
+
+            let item_id = event.target.getAttribute('item_id');
+
+            // assuming that a list is opened up and checklist items in it are visible
+            // if the dragged item is dropped on another item in the list, add it after that item (hint: no addAfter() in plain JS)
+            if( item_id ){
+
+                // items are equal, so we wont do anything
+                if( item_id == dragged.id ) return;
+
+                dropzone.insertBefore( dragged, document.getElementById(item_id) ); // add dragged item before dropped on
+                dropzone.insertBefore( document.getElementById(item_id), dragged ); // switch positions of both items
+
+                lstore.moveItem( drag_kat, drop_kat, dragged.id, item_id );
+            }
+            
+            // if dropping into another category, we will add the item at the end of that category
+            // OR item has not been dropped on another item
+            else {
+                dropzone.appendChild( dragged );
+                lstore.moveItem( drag_kat, drop_kat, dragged.id );
+            }
+        }
+      
+    }, false);
+
 });

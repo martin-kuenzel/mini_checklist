@@ -10,14 +10,14 @@
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently by Chrome and Opera */
 }
-/*
-.ch_item {
-		border: solid 1px white;
+.ql-content-static {
+    -webkit-touch-callout: unset; /* iOS Safari */
+    -webkit-user-select: unset; /* Safari */
+    -khtml-user-select: unset; /* Konqueror HTML */
+    -moz-user-select: unset; /* Firefox */
+    -ms-user-select: unset; /* Internet Explorer/Edge */
+    user-select: unset; /* Non-prefixed version, currently by Chrome and Opera */
 }
-.ch_item:hover{ 
-		border: solid 1px;
-}
-*/
 
 .ch_item:hover{ 
 		background: lightblue;
@@ -29,4 +29,11 @@
 
 .btn-toolbar button {
 		margin-left: .5rem;
+}
+
+.dragged {
+    opacity: .25 !important;
+}
+.dragover {
+    background: cyan !important;
 }
