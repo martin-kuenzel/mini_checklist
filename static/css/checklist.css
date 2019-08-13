@@ -20,15 +20,15 @@
 }
 
 .ch_item:hover{ 
-		background: lightblue;
+    background: lightblue;
 }
 
 .ch_item.vis:hover{ 
-		background: goldenrod;
+    background: goldenrod;
 }
 
 .btn-toolbar button {
-		margin-left: .5rem;
+    margin-left: .5rem;
 }
 
 .dragged {

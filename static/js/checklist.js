@@ -182,6 +182,8 @@ document.addEventListener('DOMContentLoaded', () =>{
                 dropzone.appendChild( dragged );
                 lstore.moveItem( drag_kat, drop_kat, dragged.id );
             }
+
+            create_checklist();
         }
       
     }, false);

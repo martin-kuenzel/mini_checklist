@@ -82,7 +82,10 @@ const checklist_item_edit_save = (kat, id) => {
     }
 
     let content = document.querySelector(`#collapse${kat} [id="editor_${id}"] .ql-editor`).innerHTML;
-    lstore.renameItem(kat,id,title,content);
+    
+    if( !lstore.renameItem(kat,id,title,content) ) 
+        return alert('Error editing item');
+
     create_checklist();
 };
 
@@ -225,36 +228,35 @@ let create_checklist = () => {
                     <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)" class="ch_item" kat="${kat}" id="${id}">
                         <div class="noselect d-flex pl-1 mb-1">
                             <input class="align-self-center" root="${id}" id="${id}_in" type="checkbox" />
-                            <label class="flex-grow-1 align-self-center ml-1 mb-1" for="${id}_in">${html_enc(x.title)}
+                            <label onclick="document.getElementById('${id}_in').dispatchEvent( new MouseEvent('click', { view: window, bubbles: true, cancelable: true }) );" class="flex-grow-1 align-self-center ml-1 mb-1" id="${id}_in_label">${html_enc(x.title)}
                                 <small class="collapse">
                                     <span class="badge badge-success ml-2 p-1">has content</span>
                                 </small>
                             </label>
                             <span  class="ml-1 btn btn-sm btn-danger" onclick="checklist_item_del('${kat}','${id}')">--</span>
-                            <span  class="ml-1 btn btn-sm btn-warning" onclick="checklist_item_edit('${kat}','${id}')">rename</span>
+                            <span  class="ml-1 btn btn-sm btn-warning" onclick="checklist_item_edit('${kat}','${id}')">edit</span>
                         </div>
                         <!--<div class="pl-3 pr-5 mr-5 pb-2 collapse ${x.content?'show':''}">
                             <div class="p-1 ql-content-static border border-rounded">${x.content||''}</div>
                         </div>-->
-
-                        <!-- ITEM EDITOR -->
-                        <div class="collapse border p-2 m-2" id="${id}_ed">
-                            <div class="pl-2 pr-2 mb-2">
-                                <input placeholder="the items title" class="item_title form-control" type="text" value="${html_enc(x.title)}" />
-                            </div>
-                            <!-- QUILL -->
-                            <div class="pl-2 pr-2 mb-2">
-                                <div style="height: 225px;" id="editor_${id}">${x.content||''}</div>
-                            </div>
-                            <!-- // END QUILL -->
-                            <div class="d-block p-2">
-                                <div class="btn btn-sm btn-info" onclick="create_checklist()">cancel</div>
-                                <div class="btn btn-sm btn-danger" onclick="checklist_item_edit_save('${kat}','${id}')">save</div>
-                            </div>
-                            
-                        </div>
-                        <!-- //ITEM EDITOR -->
                     </div>
+                    <!-- ITEM EDITOR -->
+                    <div class="collapse border p-2 m-2" id="${id}_ed">
+                        <div class="pl-2 pr-2 mb-2">
+                            <input placeholder="the items title" class="item_title form-control" type="text" value="${html_enc(x.title)}" />
+                        </div>
+                        <!-- QUILL -->
+                        <div class="pl-2 pr-2 mb-2">
+                            <div style="height: 225px;" id="editor_${id}">${x.content||''}</div>
+                        </div>
+                        <!-- // END QUILL -->
+                        <div class="d-block p-2">
+                            <div class="btn btn-sm btn-info" onclick="create_checklist()">cancel</div>
+                            <div class="btn btn-sm btn-danger" onclick="checklist_item_edit_save('${kat}','${id}')">save</div>
+                        </div>
+                        
+                    </div>
+                    <!-- //ITEM EDITOR -->
                     `;
                 }).join('\n') + `
                 </div>
@@ -282,9 +284,9 @@ let create_checklist = () => {
         x.querySelectorAll('*').forEach( ch_sub => ch_sub.setAttribute('item_id', x.id) );
 
         // add a badge to each of the items that have edited content to visualize it
-        let ql_content = x.querySelector('.ql-editor:not(.ql-blank)'); 
+        let ql_content = document.querySelector(`[id="${x.id}_ed"] .ql-editor:not(.ql-blank)`); 
         if(ql_content){ 
-            let badge = x.querySelector(`label[for="${x.id}_in"] .collapse`);
+            let badge = x.querySelector(`label[id="${x.id}_in_label"] .collapse`);
             badge.classList.toggle('show');
         }
 
