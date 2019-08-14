@@ -138,20 +138,35 @@ const checklist_category_set_register = (kat) => {
 // indicator to indicate whether currently opened list is the default list
 let isDefaultList = APP_KEY == default_initial_storage.APP_KEY;
 
-const bm_check = (kat, id,db_update=true) => {
+// this function is for toggling the status of checklist items 
+// db_update: if db_update is set to false, only changes in UI will be made
+const bm_check = (kat, id, db_update=true) => {
     let el = document.querySelector(`[kat="${kat}"][id="${id}"]`);
     if( el ) {
     
-        if( !lstore.getItem(kat, id).checked || lstore.getItem(kat, id).checked == false ){
-            el.querySelector('input').checked='checked'; 
-            el.classList.add('vis');
-        }
+    		// the font awesome icon at the beginning of a checklist item
+        let indicator = document.getElementById(`${el.id}_indicator`)
         
-        else {
+        indicator.classList.remove('fa-times-circle')
+        indicator.classList.remove('fa-check-circle')
+    
+    		// if the item was checked before
+        if(lstore.getItem(kat, id).checked == true) {
             el.querySelector('input').checked = null; 
             el.classList.remove('vis');
-        }
             
+            indicator.classList.add('fa-times-circle')
+            
+        }
+        
+        // if the item was not checked before
+        else {
+            el.querySelector('input').checked='checked'; 
+            el.classList.add('vis');
+            
+            indicator.classList.add('fa-check-circle')
+        }
+        
         if(db_update==true) lstore.toggleCheck(kat, id);
 
         set_visibility_of_checked(dbupdate=false);
@@ -225,10 +240,11 @@ let create_checklist = () => {
                         });
                     });
                     return `
-                    <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)" class="ch_item" kat="${kat}" id="${id}">
+                    <div class="ch_item" kat="${kat}" id="${id}">
                         <div class="noselect d-flex pl-1 mb-1">
-                            <input class="align-self-center" root="${id}" id="${id}_in" type="checkbox" />
-                            <label onclick="document.getElementById('${id}_in').dispatchEvent( new MouseEvent('click', { view: window, bubbles: true, cancelable: true }) );" class="flex-grow-1 align-self-center ml-1 mb-1" id="${id}_in_label">${html_enc(x.title)}
+                        		<div class="m-2" onclick="bm_check('${kat}','${id}')"><i id="${id}_indicator" class="far ${x.checked?'fa-check-circle':'fa-times-circle'}"></i></div>
+                            <input class="align-self-center collapse" root="${id}" id="${id}_in" type="checkbox" />
+                            <label draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)" onclick="bm_check('${kat}','${id}');" class="flex-grow-1 align-self-center ml-1 mb-1" id="${id}_in_label">${html_enc(x.title)}
                                 <small class="collapse">
                                     <span class="badge badge-success ml-2 p-1">has content</span>
                                 </small>

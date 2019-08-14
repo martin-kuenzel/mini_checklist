@@ -106,7 +106,8 @@ document.addEventListener('DOMContentLoaded', () =>{
     document.addEventListener("dragstart", function( event ) {
         
         // store a ref. on the dragged elem
-        dragged = event.target;
+        let item_id = event.target.getAttribute('item_id');
+        dragged = document.getElementById(item_id);
         
         // make it half transparent
         dragged.classList.add('dragged');
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () =>{
 
     document.addEventListener("dragenter", function( event ) {
 
-        // get the category entered by the dragged item
+        // get the category entered by the item being dragged
         let drop_kat = event.target.getAttribute('kat');
 
         // highlight potential drop target when the draggable element enters it
