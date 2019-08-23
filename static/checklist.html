@@ -5,8 +5,18 @@
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<meta http-equiv="X-UA-Compatible" content="ie=edge">
 			<title>Checklist</title>
+			
 			<link rel="stylesheet" href="./css/checklist.css">
+			
 			<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+			<!-- for formula in Quill -->
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css" integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG" crossorigin="anonymous">
+			<script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js" integrity="sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1" crossorigin="anonymous"></script>
+
+			<!-- for syntax highlighting in Quill -->
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.9/styles/default.min.css">
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.9/highlight.min.js"></script>
 
 			<!-- Include Quill stylesheet -->
 			<link href="https://cdn.quilljs.com/1.0.0/quill.snow.css" rel="stylesheet">
@@ -14,6 +24,44 @@
 			<!-- fontawesome iconsets -->
 			<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
 
+			<script>
+				class ImageToCanvas{
+					constructor(quill,options){
+						this.quill = quill;
+						this.options = options;
+						options.width = options.width || 128
+						options.height = options.height || 128
+
+						quill.on('text-change',this.update.bind(this) );
+					}
+					update(){
+						let contents = this.quill.getContents();
+						contents.ops.filter(x=>x.insert.image).map( inserted => {
+							let oldImg = document.querySelector(`[src="${inserted.insert.image}"]`);
+							if( oldImg.getAttribute('resized') ) return;
+							oldImg.onload = () => {
+								
+								if( oldImg.getAttribute('resized') || oldImg.width <= this.options.width ) return;
+								
+								oldImg.setAttribute('resized','true');
+								
+								let newImg = new Image();
+								newImg.src = inserted.insert.image;
+								
+								let elem = document.createElement('canvas');
+								elem.width = this.options.width;
+								//elem.height = this.options.height;
+								
+								let ctx = elem.getContext('2d');
+								newImg.onload = () =>{
+									let imgdata = ctx.drawImage(newImg, 0, 0, elem.width, elem.height);
+									oldImg.src = elem.toDataURL('image/png');
+								}
+							}
+						});
+					}
+				}
+			</script>
 	</head>
 
 	<body>
@@ -61,15 +109,13 @@
 			</div>
 			<div id="checklist"></div>
 		</div>
-		<script>
-		</script>
+
 		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 		<!-- Include the Quill library -->
 		<script src="https://cdn.quilljs.com/1.0.0/quill.js"></script>
-
 
 		<script src="js/DragDropTouch.js"></script>
 	</body>

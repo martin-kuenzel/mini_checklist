@@ -85,7 +85,11 @@ const downloadChecklist = (name, type, data) => {
 };
 
 document.addEventListener('DOMContentLoaded', () =>{
+    
+    Quill.register('modules/imgcanvas', ImageToCanvas);
+
     create_checklist();
+    
     let html = '<option style="font-weight:bold;" kat="checklist_app_DEFAULT" class="bg-warning">DEFAULT</option>';
     for( let ch in localStorage )
         if( ch.match(/^checklist_app_/) && !ch.match(/^checklist_app_(current|DEFAULT)$/) ){
@@ -188,5 +192,4 @@ document.addEventListener('DOMContentLoaded', () =>{
         }
       
     }, false);
-
 });

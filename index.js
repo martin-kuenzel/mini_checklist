@@ -9,6 +9,8 @@ app.use(
 
 app.get('*',(req,res)=>{
     res.redirect('checklist.html');
-}).listen(
+})
+
+app.listen(
     PORT,()=>{ console.log(`Server listening on port ${PORT}`);
 });

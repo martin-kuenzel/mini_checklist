@@ -21,6 +21,7 @@ class lStore {
 
     constructor(){ this.load(); }
     
+    // reset the currently opened storage to the default state
     reset() { 
         let title_tmp = this.storage.title; 
         localStorage[APP_KEY] = JSON.stringify(default_initial_storage); 
@@ -28,14 +29,21 @@ class lStore {
         this.storage.title = title_tmp;
     }
     
+    // load the storage with the APP_KEY from the DB
     load(){ 
         this.storage = localStorage[APP_KEY] ? JSON.parse(localStorage[APP_KEY]) : default_initial_storage;
     }
     
+    // save the current storage to the DB
     save(){
-        localStorage[APP_KEY] = JSON.stringify(this.storage); 
+        // if changes exist commit saving
+        if( localStorage[APP_KEY] != JSON.stringify(this.storage) ){
+            localStorage[APP_KEY] = JSON.stringify(this.storage);
+        }
+        return true;
     }
 
+    // import a checklist from given JSON data (for uploads)
     import(data){
         if(
             typeof data.APP_KEY != 'undefined' && 
@@ -58,11 +66,13 @@ class lStore {
         }
     }
     
+    // get a checklist item by (category,item_id)
     getItem(kat,id){
         let item = this.storage.checklist_items[kat].items.find(x => x.id == id );
         return item;
     }
     
+    // add a new category to the DB
     addCategory(addAfter){
         let newKey = `${cKey()}`;
         let new_storage = {};
@@ -74,17 +84,22 @@ class lStore {
         this.save();
         return newKey;
     }
+    
+    // rename a category in DB
     renameCategory(kat, title){
         this.storage.checklist_items[kat].title = title;
         this.storage.id_showRegister = `collapse${kat}`
         this.save();
         return true;
     }
+    
+    // set currently selected category register
     setRegister(kat){
         this.storage.id_showRegister = kat;
         this.save();
     }
 
+    // add checklist item to the DB
     addItem(kat){
         let newKey = `${cKey()}`
         this.storage.checklist_items[kat].items.push({ 
@@ -96,20 +111,23 @@ class lStore {
         return newKey; 
     }
 
+    // update the content of a checklist item in DB (title,content)
     renameItem(kat, id, title, content=""){
         this.getItem(kat,id).title = title;
         this.getItem(kat,id).content = content;
         this.save();
         return true;
     }
+    
+    // delete checklist item from DB
     delItem(kat,id){
         this.storage.checklist_items[kat].items = this.storage.checklist_items[kat].items.filter( (x,j) => x.id != id ); 
         this.save(); 
         return true;
     }
 
+    // move checklist item from one category to another in the DB
     moveItem(from_kat,to_kat,item_id,addAfter_item_id){
-        
         let item = this.getItem(from_kat,item_id);
         this.storage.checklist_items[from_kat].items = this.storage.checklist_items[from_kat].items.filter( x => x.id !== item_id );
         if(addAfter_item_id) {
@@ -125,12 +143,12 @@ class lStore {
         else {
             this.storage.checklist_items[to_kat].items.push(item);
         }
-        
 
         this.save();
         return true;
     }
 
+    // change the toggle state of a checklist item in DB
     toggleCheck(kat,id){ 
         let item = this.getItem(kat,id); 
         item.checked = item.checked == true ? false : true; 

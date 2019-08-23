@@ -197,9 +197,33 @@ let create_checklist = () => {
 
     let html = ""; 
     let show = document.querySelector('.show') ? document.querySelector('.show').id : lstore.storage.id_showRegister;
-    
-    let quill_functions = [];
 
+		// QUILL SETTINGS    
+    let quill_functions = [];
+    let quill_toolbarOptions = [
+			['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+			['blockquote', 'code-block'],
+			[{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+
+			//[{ 'header': 1 }, { 'header': 2 }],               // custom button values
+			[{ 'list': 'ordered'}, { 'list': 'bullet' }],
+			[{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+			[{ 'direction': 'rtl' }],                         // text direction
+
+			[{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+			[{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+			[{ 'font': [] }],
+			[{ 'align': [] }],
+
+			['formula',{ 'script': 'sub'}, { 'script': 'super' }], // formulars, superscript/subscript
+			
+			['clean'],                                        // remove formatting button
+
+			['link'], ['video','image']												// add links, video embeds, and images
+
+    ];
+		
     for ( let kat in lstore.storage.checklist_items ){
         let category_title = lstore.storage.checklist_items[kat].title;
         html += `
@@ -229,14 +253,13 @@ let create_checklist = () => {
                         // <!-- Initialize Quill editor -->
                         let quill = new Quill(`#editor_${id}`, {
                             modules: {
-                            toolbar: [
-                                [{ header: [1, 2, false] }],
-                                ['bold', 'italic', 'underline'],
-                                ['image', 'code-block']
-                            ]
+                                formula: true,  								// Include the formula module (important!)
+                                toolbar: quill_toolbarOptions,	
+                                syntax: true,
+                                imgcanvas: {}
                             },
                             placeholder: 'Add some further description here [optional] ...',
-                            theme: 'snow'  // or 'bubble'
+                            theme: 'snow'
                         });
                     });
                     return `
@@ -259,11 +282,11 @@ let create_checklist = () => {
                     <!-- ITEM EDITOR -->
                     <div class="collapse border p-2 m-2" id="${id}_ed">
                         <div class="pl-2 pr-2 mb-2">
-                            <input placeholder="the items title" class="item_title form-control" type="text" value="${html_enc(x.title)}" />
+                            <input placeholder="the items title (required)" class="item_title form-control" type="text" value="${html_enc(x.title)}" />
                         </div>
                         <!-- QUILL -->
                         <div class="pl-2 pr-2 mb-2">
-                            <div style="height: 225px;" id="editor_${id}">${x.content||''}</div>
+                            <div style="height: 265px;" id="editor_${id}">${x.content||''}</div>
                         </div>
                         <!-- // END QUILL -->
                         <div class="d-block p-2">
