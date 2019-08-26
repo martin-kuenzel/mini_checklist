@@ -1,5 +1,5 @@
 /**
-	The local Storage DB-Manager
+    The Server storage DB-Manager
 */
 
 // the default data (which is set when reset is done, or no checklists are existant)
@@ -10,37 +10,40 @@ let default_initial_storage = {
     checklist_items: {
         Kat_0: { title: "Mainstuff", items: [ { id:"0",title:"yep", /*opt*/ checked: false }, { id:"1",title:"this stuff" }, { id:"2",title:"is important" } ] },
         Kat_1: { title: "secondary Stuff", items: [ { id:"3",title:"Little" }, { id:"4",title:"side" }, { id:"5",title:"Stories" } ] }
-    } 
+    }
 };
 
 let APP_KEY = localStorage.checklist_app_current || default_initial_storage.APP_KEY;
 localStorage.checklist_app_current = APP_KEY;
 
 // manager for localStorage saving and loading
-class lStore {
+class srvStore {
 
-    constructor(){ this.load(); }
+    constructor(){ this.load(); console.log(`Instance of ${ this.constructor.name } initialized.`); }
     
     // reset the currently opened storage to the default state
     reset() { 
-        let title_tmp = this.storage.title; 
-        localStorage[APP_KEY] = JSON.stringify(default_initial_storage); 
-        this.load(); 
+        let title_tmp = this.storage.title;
+        this.storage = default_initial_storage;
         this.storage.title = title_tmp;
+        this.save(true);
     }
     
     // load the storage with the APP_KEY from the DB
-    load(){ 
-        this.storage = localStorage[APP_KEY] ? JSON.parse(localStorage[APP_KEY]) : default_initial_storage;
+    load(){
+        localforage.getItem(APP_KEY, (err,data) => {
+            if(err) throw err;
+            this.storage = data ? JSON.parse(data) : default_initial_storage;
+        });
     }
     
     // save the current storage to the DB
-    save(){
-        // if changes exist commit saving
-        if( localStorage[APP_KEY] != JSON.stringify(this.storage) ){
-            localStorage[APP_KEY] = JSON.stringify(this.storage);
-        }
-        return true;
+    save(reload=false){
+        localforage.setItem(APP_KEY, JSON.stringify(this.storage), (err) => { 
+            if(err) throw err;
+            console.log('saved'); 
+            if(reload) document.location.reload(); 
+        });
     }
 
     // import a checklist from given JSON data (for uploads)
@@ -53,15 +56,16 @@ class lStore {
         ){
                 
             APP_KEY = data.APP_KEY;
-            localStorage.checklist_app_current = APP_KEY;
             
             this.storage.toggle_state = data.toggle_state;
             this.storage.APP_KEY = data.APP_KEY;
             this.storage.title = data.title;
             this.storage.checklist_items = data.checklist_items;
 
-            this.save();
+            localStorage['checklist_app_current'] = APP_KEY;
             
+            this.save(true);
+
             return true;
         }
     }

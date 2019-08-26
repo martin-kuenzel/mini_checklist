@@ -62,14 +62,17 @@
 					}
 				}
 			</script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.7.3/localforage.nopromises.min.js"></script>
 	</head>
 
 	<body>
 		<script src="js/glob.js"></script>
-		<script src="js/lStore.js"></script>
+		<!-- <script src="js/lStore.js"></script> -->
+		<script src="js/srvStore.js"></script>
 		<script src="js/UIManager.js"></script>
 		
 		<script src="./js/checklist.js"></script>
+
 
 		<h2 class="header pl-2 pt-2 pb-2 m-0 mb-2">Checklist&nbsp;<span id="checklist_title"></span>
 			<div class="collapse bg-white border p-2 pr-4 m-2 mr-3" id="title_ed">
@@ -98,7 +101,7 @@
 					
 					<button id="create_printable" class="btn btn-info btn-sm" onclick="create_checklist_printable();">create printable output</button>
 
-					<button class="btn btn-sm btn-success" onclick="downloadChecklist(`checklist_${APP_KEY}_${(new Date()).getTime()}.json`, 'data:attachment/text', JSON.stringify(lstore.storage));">Download</button>
+					<button class="btn btn-sm btn-success" onclick="downloadChecklist(`checklist_${APP_KEY}_${(new Date()).getTime()}.json`, 'data:attachment/text', JSON.stringify(srvstore.storage));">Download</button>
 
 				</div>
 			</div>
@@ -118,5 +121,6 @@
 		<script src="https://cdn.quilljs.com/1.0.0/quill.js"></script>
 
 		<script src="js/DragDropTouch.js"></script>
+
 	</body>
 </html>

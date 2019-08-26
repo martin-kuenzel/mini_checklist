@@ -1,12 +1,14 @@
 /**
-	The UI Management functions
+    The UI Management functions
 */
+
+//TODO connect callback functions with localforage
 
 
 // resetting of the current checklist to DEFAULT
 const checklist_reset = () => {
-    lstore.reset();
-    document.getElementById('vis_toggle').checked = lstore.storage.toggle_state == true ? 'checked' : null;
+    srvstore.reset();
+    document.getElementById('vis_toggle').checked = srvstore.storage.toggle_state == true ? 'checked' : null;
     create_checklist();
 };
 
@@ -18,13 +20,13 @@ const checklist_title_edit = () => {
     document.querySelectorAll(`[id*="_ed"]:not([id="title_ed"])`).forEach(x=>x.classList.add('collapse'));
 
     document.getElementById('title_ed').classList.toggle('collapse');
-    document.getElementById('title_input').value = lstore.storage.title;
+    document.getElementById('title_input').value = srvstore.storage.title;
 };
 
 // editing the title of the current checklist save
 const checklist_title_edit_save = () => {
-    lstore.storage.title = document.getElementById('title_input').value;
-    lstore.save();
+    srvstore.storage.title = document.getElementById('title_input').value;
+    srvstore.save();
     document.location.reload();
 };
 
@@ -36,31 +38,33 @@ const checklist_del_complete = () => {
     if( APP_KEY == default_initial_storage.APP_KEY ) 
         return alert('Deletion of the default list is not possible');
 
-    delete localStorage[APP_KEY];
-    localStorage.checklist_app_current = default_initial_storage.APP_KEY;
-    document.location.reload();
+    localforage.removeItem(APP_KEY, (err) => {
+        if(err) throw err;
+        localStorage.checklist_app_current = default_initial_storage.APP_KEY;
+        document.location.reload();
+    });
 };
 
 // copying complete recent checklist
 const checklist_add_complete = () => {
     APP_KEY = 'checklist_app_' + cKey();
-    lstore.storage.APP_KEY = APP_KEY;
-    lstore.storage.title = lstore.storage.title + '_copy';
+    srvstore.storage.APP_KEY = APP_KEY;
+    srvstore.storage.title = srvstore.storage.title + '_copy';
     localStorage.checklist_app_current = APP_KEY;
-    lstore.save();
-    document.location.reload();
+    srvstore.save(true); // save with reload = true
+    //document.location.reload();
 };
 
 // adding a new checklist item
 const checklist_item_add = (kat) => {
-    if( !lstore.addItem(kat) ) 
+    if( !srvstore.addItem(kat) ) 
         return alert('Error creating new item');
     create_checklist();
 };
 
 // deleting a checklist item
 const checklist_item_del = (kat, id) => {
-    if( !lstore.delItem(kat,id) )
+    if( !srvstore.delItem(kat,id) )
         return alert('Error deleting item');
     create_checklist();
 };
@@ -68,7 +72,7 @@ const checklist_item_del = (kat, id) => {
 // editing a checklist item start
 const checklist_item_edit = (kat, id) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${id}_ed"])`).forEach(x=>x.classList.add('collapse'));
-    document.querySelector(`#collapse${kat} [id="${id}_ed"]`).querySelector('input').value = lstore.storage.checklist_items[kat].items.filter(x=>x.id==id)[0].title;
+    document.querySelector(`#collapse${kat} [id="${id}_ed"]`).querySelector('input').value = srvstore.storage.checklist_items[kat].items.filter(x=>x.id==id)[0].title;
     document.querySelector(`#collapse${kat} [id="${id}_ed"]`).classList.toggle('collapse');
 
 };
@@ -83,7 +87,7 @@ const checklist_item_edit_save = (kat, id) => {
 
     let content = document.querySelector(`#collapse${kat} [id="editor_${id}"] .ql-editor`).innerHTML;
     
-    if( !lstore.renameItem(kat,id,title,content) ) 
+    if( !srvstore.renameItem(kat,id,title,content) ) 
         return alert('Error editing item');
 
     create_checklist();
@@ -96,17 +100,17 @@ const checklist_item_cancel = (kat, id) => {
 
 // adding a new category
 const checklist_category_add = (add_after_kat) => {
-    let newkat = lstore.addCategory(add_after_kat);
-    lstore.storage.id_showRegister = `collapse${newkat}`;
+    let newkat = srvstore.addCategory(add_after_kat);
+    srvstore.storage.id_showRegister = `collapse${newkat}`;
     create_checklist();
 };
 
 // removing a category
 const checklist_category_del = (kat) => {
-    if( Object.keys(lstore.storage.checklist_items).length == 1 ) 
+    if( Object.keys(srvstore.storage.checklist_items).length == 1 ) 
         return alert('Cannot remove all categories!');
-    delete lstore.storage.checklist_items[kat];
-    lstore.save();
+    delete srvstore.storage.checklist_items[kat];
+    srvstore.save();
     create_checklist();
 };
 
@@ -114,14 +118,14 @@ const checklist_category_del = (kat) => {
 const checklist_category_rename = (kat) => {
     document.querySelectorAll(`[id*="_ed"]:not([id="${kat}_ed"])`).forEach(x=>x.classList.add('collapse'));
 
-    document.querySelector(`[id="${kat}_ed"] input`).value = lstore.storage.checklist_items[kat].title;
+    document.querySelector(`[id="${kat}_ed"] input`).value = srvstore.storage.checklist_items[kat].title;
     document.getElementById(`${kat}_ed`).classList.toggle('collapse');
 };
 
 // renaming of a category save
 const checklist_category_rename_save = (kat) => {
     let newKey = document.querySelector(`[id="${kat}_ed"] input`).value;
-    lstore.renameCategory(kat,newKey);
+    srvstore.renameCategory(kat,newKey);
     create_checklist();
 };
 
@@ -132,7 +136,7 @@ const checklist_category_rename_cancel = (kat) => {
 
 // setting the activated category register
 const checklist_category_set_register = (kat) => {
-    lstore.setRegister(`collapse${kat}`);
+    srvstore.setRegister(`collapse${kat}`);
 };
 
 // indicator to indicate whether currently opened list is the default list
@@ -144,14 +148,14 @@ const bm_check = (kat, id, db_update=true) => {
     let el = document.querySelector(`[kat="${kat}"][id="${id}"]`);
     if( el ) {
     
-    		// the font awesome icon at the beginning of a checklist item
+        // the font awesome icon at the beginning of a checklist item
         let indicator = document.getElementById(`${el.id}_indicator`)
         
         indicator.classList.remove('fa-times-circle')
         indicator.classList.remove('fa-check-circle')
     
-    		// if the item was checked before
-        if(lstore.getItem(kat, id).checked == true) {
+        // if the item was checked before
+        if(srvstore.getItem(kat, id).checked == true) {
             el.querySelector('input').checked = null; 
             el.classList.remove('vis');
             
@@ -167,14 +171,14 @@ const bm_check = (kat, id, db_update=true) => {
             indicator.classList.add('fa-check-circle')
         }
         
-        if(db_update==true) lstore.toggleCheck(kat, id);
+        if(db_update==true) srvstore.toggleCheck(kat, id);
 
         set_visibility_of_checked(dbupdate=false);
         
     }
     else {
         console.warn(`Element ${id} does not exist !`);
-        lstore.del(id);
+        srvstore.del(id);
     }
 };
 
@@ -182,13 +186,13 @@ const bm_check = (kat, id, db_update=true) => {
 let create_checklist = () => {
     
     // set the title
-    document.getElementsByTagName('title')[0].textContent =  lstore.storage.title;
-    document.getElementById('checklist_title').textContent = lstore.storage.title;
+    document.getElementsByTagName('title')[0].textContent =  srvstore.storage.title;
+    document.getElementById('checklist_title').textContent = srvstore.storage.title;
     
     isDefaultList = APP_KEY == default_initial_storage.APP_KEY;
     
     // if the current list is the DEFAULT checklist, set a mark to visualize that it is and hide .no_default elements
-   	document.querySelectorAll('.no_default').forEach( x => x.style.display = null ); // initially show .no_default elements
+    document.querySelectorAll('.no_default').forEach( x => x.style.display = null ); // initially show .no_default elements
     document.getElementById('no_default_hint').style.display = "none";
     if( isDefaultList == true ){
         document.getElementById('no_default_hint').style.display = null;
@@ -196,38 +200,38 @@ let create_checklist = () => {
     }
 
     let html = ""; 
-    let show = document.querySelector('.show') ? document.querySelector('.show').id : lstore.storage.id_showRegister;
+    let show = document.querySelector('.show') ? document.querySelector('.show').id : srvstore.storage.id_showRegister;
 
-		// QUILL SETTINGS    
+    // QUILL SETTINGS    
     let quill_functions = [];
     let quill_toolbarOptions = [
-			['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-			['blockquote', 'code-block'],
-			[{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
 
-			//[{ 'header': 1 }, { 'header': 2 }],               // custom button values
-			[{ 'list': 'ordered'}, { 'list': 'bullet' }],
-			[{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-			[{ 'direction': 'rtl' }],                         // text direction
+        //[{ 'header': 1 }, { 'header': 2 }],               // custom button values
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{ 'direction': 'rtl' }],                         // text direction
 
-			[{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-			[{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
 
-			[{ 'font': [] }],
-			[{ 'align': [] }],
+        [{ 'font': [] }],
+        [{ 'align': [] }],
 
-			['formula',{ 'script': 'sub'}, { 'script': 'super' }], // formulars, superscript/subscript
-			
-			['clean'],                                        // remove formatting button
+        ['formula',{ 'script': 'sub'}, { 'script': 'super' }], // formulars, superscript/subscript
 
-			['link'], ['video','image']												// add links, video embeds, and images
+        ['clean'],                                        // remove formatting button
+
+        ['link'], ['video','image']						  // add links, video embeds, and images
 
     ];
 		
-    for ( let kat in lstore.storage.checklist_items ){
-        let category_title = lstore.storage.checklist_items[kat].title;
+    for ( let kat in srvstore.storage.checklist_items ){
+        let category_title = srvstore.storage.checklist_items[kat].title;
         html += `
-        <div class="card category" id="${kat}">
+        <div class="card category dropzone" id="${kat}" kat="${kat}">
             <div class="card-header dropzone" onclick="checklist_category_set_register('${kat}');">
                 <h2 class="d-flex">
                     <button class="flex-grow-1 text-left btn btn-link" type="button" data-toggle="collapse" data-target="#collapse${kat}" aria-expanded="true" aria-controls="collapse${kat}">
@@ -247,13 +251,13 @@ let create_checklist = () => {
             </div>
             <div id="collapse${kat}" class="collapse ${'collapse'+kat==show?'show':''}" aria-labelledby="${kat}" data-parent="#accordionChecklist">
                 <div class="card-body p-2">` + 
-                lstore.storage.checklist_items[kat].items.map( (x,i) => { 
+                srvstore.storage.checklist_items[kat].items.map( (x,i) => { 
                     let id = x.id;
                     quill_functions.push( () => {
                         // <!-- Initialize Quill editor -->
                         let quill = new Quill(`#editor_${id}`, {
                             modules: {
-                                formula: true,  								// Include the formula module (important!)
+                                formula: true,  // Include the formula module (important!)
                                 toolbar: quill_toolbarOptions,	
                                 syntax: true,
                                 imgcanvas: {}
@@ -342,19 +346,20 @@ let create_checklist = () => {
     );
     
     // set initial checked state for all items in checklist
-    for( let kat in lstore.storage.checklist_items ) {
-    	lstore.storage.checklist_items[kat].items.filter( item => item.checked ).forEach( x => {
-            lstore.getItem(kat,x.id).checked = false; // must be initially set to false ( for the UI )
+    for( let kat in srvstore.storage.checklist_items ) {
+    	srvstore.storage.checklist_items[kat].items.filter( item => item.checked ).forEach( x => {
+            srvstore.getItem(kat,x.id).checked = false; // must be initially set to false ( for the UI )
             bm_check(kat, x.id);
-  		});
+	});
     }
     
     // on selection of another checklist
     document.getElementById('saved_checklists').oninput = () => { 
         APP_KEY = event.target.querySelector(':checked').getAttribute('kat'); 
         localStorage.checklist_app_current = APP_KEY;
-        lstore.load();
-        create_checklist(); 
+        document.location.reload();
+        //srvstore.load();
+        //create_checklist(); 
     };
     
     set_visibility_of_checked(dbupdate=false);
