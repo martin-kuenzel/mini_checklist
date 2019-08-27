@@ -26,8 +26,8 @@ const checklist_title_edit = () => {
 // editing the title of the current checklist save
 const checklist_title_edit_save = () => {
     srvstore.storage.title = document.getElementById('title_input').value;
-    srvstore.save();
-    document.location.reload();
+    srvstore.save({callback:create_checklist}); // save with reload == true
+    //document.location.reload();
 };
 
 // editing the title of the current checklist cancel
@@ -51,22 +51,22 @@ const checklist_add_complete = () => {
     srvstore.storage.APP_KEY = APP_KEY;
     srvstore.storage.title = srvstore.storage.title + '_copy';
     localStorage.checklist_app_current = APP_KEY;
-    srvstore.save(true); // save with reload = true
+    srvstore.save({reload:true}); // save with reload = true
     //document.location.reload();
 };
 
 // adding a new checklist item
 const checklist_item_add = (kat) => {
-    if( !srvstore.addItem(kat) ) 
+    if( !srvstore.addItem(kat,create_checklist) ) 
         return alert('Error creating new item');
-    create_checklist();
+    //create_checklist();
 };
 
 // deleting a checklist item
 const checklist_item_del = (kat, id) => {
-    if( !srvstore.delItem(kat,id) )
+    if( !srvstore.delItem(kat,id, create_checklist ) )
         return alert('Error deleting item');
-    create_checklist();
+    //create_checklist();
 };
 
 // editing a checklist item start
@@ -87,10 +87,10 @@ const checklist_item_edit_save = (kat, id) => {
 
     let content = document.querySelector(`#collapse${kat} [id="editor_${id}"] .ql-editor`).innerHTML;
     
-    if( !srvstore.renameItem(kat,id,title,content) ) 
+    if( !srvstore.renameItem(kat,id,title,content, create_checklist) ) 
         return alert('Error editing item');
 
-    create_checklist();
+    //create_checklist();
 };
 
 // editing a checklist item cancel
@@ -110,8 +110,7 @@ const checklist_category_del = (kat) => {
     if( Object.keys(srvstore.storage.checklist_items).length == 1 ) 
         return alert('Cannot remove all categories!');
     delete srvstore.storage.checklist_items[kat];
-    srvstore.save();
-    create_checklist();
+    srvstore.save({callback:create_checklist});
 };
 
 // renaming of a category start
@@ -249,7 +248,7 @@ let create_checklist = () => {
                         </div>
                     </div>
             </div>
-            <div id="collapse${kat}" class="collapse ${'collapse'+kat==show?'show':''}" aria-labelledby="${kat}" data-parent="#accordionChecklist">
+            <div id="collapse${kat}" class="collapse" aria-labelledby="${kat}" data-parent="#accordionChecklist">
                 <div class="card-body p-2">` + 
                 srvstore.storage.checklist_items[kat].items.map( (x,i) => { 
                     let id = x.id;
@@ -267,10 +266,10 @@ let create_checklist = () => {
                         });
                     });
                     return `
-                    <div class="ch_item" kat="${kat}" id="${id}">
+                    <div class="ch_item ${x.checked?'vis':''}" kat="${kat}" id="${id}">
                         <div class="noselect d-flex pl-1 mb-1">
-                        		<div class="m-2" onclick="bm_check('${kat}','${id}')"><i id="${id}_indicator" class="far ${x.checked?'fa-check-circle':'fa-times-circle'}"></i></div>
-                            <input class="align-self-center collapse" root="${id}" id="${id}_in" type="checkbox" />
+                            <div class="m-2" onclick="bm_check('${kat}','${id}')"><i id="${id}_indicator" class="far ${x.checked?'fa-check-circle':'fa-times-circle'}"></i></div>
+                            <input class="align-self-center collapse" ${x.checked?'checked="checked"':''} root="${id}" id="${id}_in" type="checkbox" />
                             <label draggable="true" ondragstart="event.dataTransfer.setData('text/plain',null)" onclick="bm_check('${kat}','${id}');" class="flex-grow-1 align-self-center ml-1 mb-1" id="${id}_in_label">${html_enc(x.title)}
                                 <small class="collapse">
                                     <span class="badge badge-success ml-2 p-1">has content</span>
@@ -314,7 +313,17 @@ let create_checklist = () => {
     }
     
     document.getElementById('checklist').innerHTML = '<div class="accordion" id="accordionChecklist">' + html + '</div>';
-    if( !show ) document.querySelector('#checklist [data-parent="#accordionChecklist"].collapse').classList.toggle('show'); 
+   
+    //if( !show ) document.querySelector('#checklist [data-parent="#accordionChecklist"].collapse').classList.toggle('show'); 
+
+    // if there is an activated register in the current checklist show this register in the UI
+    // else show the first one (hint: less then one register is not allowed in the APP logic)
+    let registers = Array.from( document.querySelectorAll('#checklist [data-parent="#accordionChecklist"]') );
+    let active_register = srvstore.storage.id_showRegister;
+    if( active_register ) 
+        registers.filter( x => x.id === active_register ).forEach( x => x.classList.add('show') ); // we use filter.foreach to prevent errors on not existant DOM
+    else 
+        registers[0].classList.add('show');
 
     // create editors for all items in checklist
     for( let f=0; f < quill_functions.length; f++ ){
@@ -346,12 +355,12 @@ let create_checklist = () => {
     );
     
     // set initial checked state for all items in checklist
-    for( let kat in srvstore.storage.checklist_items ) {
+    /*for( let kat in srvstore.storage.checklist_items ) {
     	srvstore.storage.checklist_items[kat].items.filter( item => item.checked ).forEach( x => {
             srvstore.getItem(kat,x.id).checked = false; // must be initially set to false ( for the UI )
             bm_check(kat, x.id);
-	});
-    }
+	    });
+    }*/
     
     // on selection of another checklist
     document.getElementById('saved_checklists').oninput = () => { 

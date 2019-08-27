@@ -35,6 +35,6 @@
 .dragged {
     opacity: .25 !important;
 }
-.dragover, .dragover *:not(.btn) {
+.dragover, .dragover *:not(.btn):not(.badge) {
     background: cyan !important;
 }

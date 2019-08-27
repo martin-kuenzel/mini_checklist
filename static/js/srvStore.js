@@ -26,7 +26,7 @@ class srvStore {
         let title_tmp = this.storage.title;
         this.storage = default_initial_storage;
         this.storage.title = title_tmp;
-        this.save(true);
+        this.save({reload:true});
     }
     
     // load the storage with the APP_KEY from the DB
@@ -38,11 +38,12 @@ class srvStore {
     }
     
     // save the current storage to the DB
-    save(reload=false){
+    save(options={}){
         localforage.setItem(APP_KEY, JSON.stringify(this.storage), (err) => { 
             if(err) throw err;
             console.log('saved'); 
-            if(reload) document.location.reload(); 
+            if(options.reload) document.location.reload(); 
+            if(options.callback) options.callback.call();
         });
     }
 
@@ -64,7 +65,7 @@ class srvStore {
 
             localStorage['checklist_app_current'] = APP_KEY;
             
-            this.save(true);
+            this.save({reload:true});
 
             return true;
         }
@@ -104,34 +105,34 @@ class srvStore {
     }
 
     // add checklist item to the DB
-    addItem(kat){
+    addItem(kat,callback){
         let newKey = `${cKey()}`
         this.storage.checklist_items[kat].items.push({ 
             title: `new item created @${(new Date()).getTime()}`,
             id: newKey,
             checked: false
         }); 
-        this.save();
+        this.save({callback:callback}); // save with reload == true
         return newKey; 
     }
 
     // update the content of a checklist item in DB (title,content)
-    renameItem(kat, id, title, content=""){
+    renameItem(kat, id, title, content, callback){
         this.getItem(kat,id).title = title;
-        this.getItem(kat,id).content = content;
-        this.save();
+        if(content) this.getItem(kat,id).content = content;
+        this.save({callback:callback}); // save with reload == true
         return true;
     }
     
     // delete checklist item from DB
-    delItem(kat,id){
+    delItem(kat,id,callback){
         this.storage.checklist_items[kat].items = this.storage.checklist_items[kat].items.filter( (x,j) => x.id != id ); 
-        this.save(); 
+        this.save({callback:callback}); // save with reload == true
         return true;
     }
 
     // move checklist item from one category to another in the DB
-    moveItem(from_kat,to_kat,item_id,addAfter_item_id){
+    moveItem(from_kat, to_kat, item_id, addAfter_item_id, create_checklist){
         let item = this.getItem(from_kat,item_id);
         this.storage.checklist_items[from_kat].items = this.storage.checklist_items[from_kat].items.filter( x => x.id !== item_id );
         if(addAfter_item_id) {
@@ -148,14 +149,14 @@ class srvStore {
             this.storage.checklist_items[to_kat].items.push(item);
         }
 
-        this.save();
+        this.save({callback:create_checklist});
         return true;
     }
 
     // change the toggle state of a checklist item in DB
     toggleCheck(kat,id){ 
         let item = this.getItem(kat,id); 
-        item.checked = item.checked == true ? false : true; 
+        item.checked = item.checked == true ? false : true;
         this.save(); 
         return true;
     }

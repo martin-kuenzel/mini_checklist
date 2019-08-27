@@ -144,7 +144,7 @@ const runr_async_sucks = () => {
     document.getElementById('vis_toggle').checked = srvstore.storage.toggle_state == true ? 'checked' : null;
 
     // set the visibility of all checklist items according to the vis toggle's current state
-    set_visibility_of_checked();
+    set_visibility_of_checked(false);
 
     let dragged;
 
@@ -237,17 +237,17 @@ const runr_async_sucks = () => {
                 dropzone.insertBefore( document.getElementById(item_id), dragged ); 
 
                 // move the items in the checklists DB object
-                srvstore.moveItem( drag_kat, drop_kat, dragged.id, item_id );
+                srvstore.moveItem( drag_kat, drop_kat, dragged.id, item_id, create_checklist );
             }
             
             // if dropping into another category, we will add the item at the end of that category
             // OR item has not been dropped on another item
             else {
                 dropzone.appendChild( dragged );
-                srvstore.moveItem( drag_kat, drop_kat, dragged.id );
+                srvstore.moveItem( drag_kat, drop_kat, dragged.id, null, create_checklist );
             }
 
-            create_checklist();
+            //create_checklist();
         }
       
     }, false);
