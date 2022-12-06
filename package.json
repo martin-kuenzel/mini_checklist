@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/martin-kuenzel/mini_checklist#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.18.2"
   }
 }
